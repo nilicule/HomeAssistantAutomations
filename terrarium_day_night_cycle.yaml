@@ -1,0 +1,53 @@
+alias: Terrarium Day/Night Cycle
+description: Control terrarium lighting based on sun position
+triggers:
+  - event: sunrise
+    offset: "+00:30:00"
+    trigger: sun
+  - event: sunset
+    offset: "+00:30:00"
+    trigger: sun
+  - event: start
+    trigger: homeassistant
+  - hours: "*"
+    trigger: time_pattern
+actions:
+  - choose:
+      - conditions:
+          - condition: sun
+            after: sunrise
+            before: sunset
+        sequence:
+          - target:
+              entity_id: light.terrarium_day
+            action: light.turn_on
+          - target:
+              entity_id: light.terrarium_night
+            action: light.turn_off
+          - data:
+              message: "Terrarium automation: Day mode activated"
+              level: info
+            action: system_log.write
+      - conditions:
+          - condition: sun
+            after: sunset
+            before: sunrise
+        sequence:
+          - target:
+              entity_id: light.terrarium_night
+            action: light.turn_on
+          - target:
+              entity_id: light.terrarium_day
+            action: light.turn_off
+          - data:
+              message: "Terrarium automation: Night mode activated"
+              level: info
+            action: system_log.write
+    default:
+      - data:
+          message: "Terrarium automation: No condition matched, checking sun position"
+          level: warning
+        action: system_log.write
+      - target:
+          entity_id: sun.sun
+        action: homeassistant.update_entity
