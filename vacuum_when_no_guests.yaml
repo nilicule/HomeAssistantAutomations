@@ -1,0 +1,39 @@
+alias: Vacuum When Away and No Guests
+description: >-
+  Start vacuum when away mode is turned on and no guests, ensuring it doesn't
+  run more than once in a 12-hour period
+triggers:
+  - entity_id: input_boolean.away_mode
+    to: "on"
+    for:
+      minutes: 10
+    trigger: state
+    id: away_mode_trigger
+  - at: "09:00:00"
+    trigger: time
+    id: daily_trigger
+conditions:
+  - condition: template
+    value_template: "{{ is_state('input_boolean.away_mode', 'on') }}"
+  - condition: template
+    value_template: "{{ is_state('input_boolean.guest_mode', 'off') }}"
+  - condition: template
+    value_template: >-
+      {% set last_run =
+      as_timestamp(states('sensor.jason_last_mission_start_time')) | default(0)
+      %} {% set twelve_hours_ago = as_timestamp(now()) - 12 * 60 * 60 %} {{
+      last_run < twelve_hours_ago }}
+  - condition: template
+    value_template: "{{ not is_state('vacuum.jason', 'cleaning') }}"
+actions:
+  - target:
+      entity_id: vacuum.jason
+    action: vacuum.start
+    data: {}
+  - action: notify.mobile_app_pixel_10_pro
+    data:
+      message: >-
+        Jason has started cleaning while you're away. Triggered by: {{
+        trigger.id }}
+mode: single
+max_exceeded: silent
