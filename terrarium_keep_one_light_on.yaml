@@ -1,0 +1,23 @@
+alias: "Terrarium: Always Keep One Light On"
+description: Immediately turn a terrarium light back on if both are turned off
+triggers:
+  - entity_id:
+      - light.terrarium_day
+      - light.terrarium_night
+    to: "off"
+    trigger: state
+conditions:
+  - condition: template
+    value_template: |
+      {{ is_state('light.terrarium_day', 'off') and 
+         is_state('light.terrarium_night', 'off') }}
+actions:
+  - target:
+      entity_id: |
+        {% if is_state('sun.sun', 'below_horizon') %}
+          light.terrarium_night
+        {% else %}
+          light.terrarium_day
+        {% endif %}
+    action: light.turn_on
+mode: restart
