@@ -1,0 +1,20 @@
+alias: Return Vacuum When Hallway Door Opens
+description: >-
+  Stops the vacuum and sends it home when the hallway contact sensor opens and
+  the vacuum is not docked
+triggers:
+  - entity_id: binary_sensor.front_door_opening
+    to: "on"
+    trigger: state
+conditions:
+  - condition: template
+    value_template: "{{ states('vacuum.jason') != 'docked' }}"
+  - condition: state
+    entity_id: input_boolean.home_mode
+    state: "off"
+actions:
+  - target:
+      entity_id: vacuum.jason
+    action: vacuum.return_to_base
+    data: {}
+mode: single
