@@ -1,0 +1,22 @@
+alias: Set home mode when motion detected after work
+description: >-
+  Set home mode when motion is detected after 5pm with home mode off and roomba
+  docked
+triggers:
+  - entity_id: binary_sensor.hallway_motion
+    from: "off"
+    to: "on"
+    trigger: state
+conditions:
+  - condition: state
+    entity_id: input_boolean.home_mode
+    state: "off"
+  - condition: time
+    after: "17:00:00"
+  - condition: state
+    entity_id: vacuum.jason
+    state: docked
+actions:
+  - action: script.set_home
+    data: {}
+mode: single
